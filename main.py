@@ -12,6 +12,7 @@ Deterministic: two runs produce a byte-identical file. No network access.
 Requires: Pillow (PIL) and the DejaVu fonts shipped with most Linux distros.
 """
 import hashlib
+import math
 import os
 from PIL import Image, ImageDraw, ImageFont
 
@@ -346,6 +347,16 @@ def skyline(d, x, base_y, w, h, color, heights):
                 d.rectangle([wx, base_y - wy - 3, wx + 3, base_y - wy], fill=(255, 214, 110))
 
 
+def missile_trail(d, x, y, w, h, x0, y0, x1, y1, color, head=False):
+    """One missile streak across a night sky: a 3px line from (x0, y0) to
+    (x1, y1) in fractional box coords, with an optional glowing head dot."""
+    d.line([(x + w * x0, y + h * y0), (x + w * x1, y + h * y1)],
+           fill=color, width=3)
+    if head:
+        d.ellipse([x + w * x1 - 3, y + h * y1 - 3, x + w * x1 + 3, y + h * y1 + 3],
+                  fill=(255, 220, 120))
+
+
 # ---------------------------------------------------------------- scenes
 # Each scene draws into box (x, y, w, h). All fresh, hand-built shapes.
 
@@ -400,10 +411,7 @@ def scene_ukraine(d, x, y, w, h):
     # missile trails
     for (x0, y0, x1, y1) in [(0.10, 0.42, 0.30, 0.18), (0.55, 0.38, 0.72, 0.12),
                              (0.78, 0.45, 0.92, 0.28)]:
-        d.line([(x + w * x0, y + h * y0), (x + w * x1, y + h * y1)],
-               fill=(255, 170, 60), width=3)
-        d.ellipse([x + w * x1 - 3, y + h * y1 - 3, x + w * x1 + 3, y + h * y1 + 3],
-                  fill=(255, 220, 120))
+        missile_trail(d, x, y, w, h, x0, y0, x1, y1, (255, 170, 60), head=True)
     # city skyline + station
     base = y + h
     skyline(d, x, base - h * 0.22, w, h * 0.22, (26, 26, 34),
@@ -475,8 +483,8 @@ def scene_cepa(d, x, y, w, h):
             d.rectangle([px, y + h * 0.18, px + fw, y + h * 0.18 + fh], fill=(28, 68, 150))
             for k in range(8):
                 ang = 3.14159 * 2 * k / 8
-                sx = px + fw * 0.5 + fw * 0.28 * 0.9 * __import__("math").cos(ang)
-                sy = y + h * 0.18 + fh * 0.5 + fh * 0.28 * 0.9 * __import__("math").sin(ang)
+                sx = px + fw * 0.5 + fw * 0.28 * 0.9 * math.cos(ang)
+                sy = y + h * 0.18 + fh * 0.5 + fh * 0.28 * 0.9 * math.sin(ang)
                 d.ellipse([sx - 2, sy - 2, sx + 2, sy + 2], fill=(255, 210, 60))
         else:
             d.rectangle([px, y + h * 0.18, px + fw, y + h * 0.18 + fh / 2], fill=(200, 40, 36))
@@ -637,11 +645,10 @@ def scene_maluku(d, x, y, w, h):
     d.rectangle([sx, sy, sx + sw, sy + sh], fill=(255, 255, 255), outline=(40, 40, 40))
     mid = sy + sh / 2
     pts = []
-    import math as _m
     for i in range(41):
         px = sx + sw * i / 40
         amp = (sh * 0.32 if 14 <= i <= 26 else sh * 0.07)
-        py = mid + _m.sin(i * 1.7) * amp * (1 if i % 2 == 0 else -1)
+        py = mid + math.sin(i * 1.7) * amp * (1 if i % 2 == 0 else -1)
         pts.append((px, py))
     d.line(pts, fill=(176, 32, 28), width=2)
     f = font("sans_b", max(10, int(h * 0.16)))
@@ -660,15 +667,12 @@ def scene_houthi(d, x, y, w, h):
     d.polygon([(tx - 2, base - h * 0.62), (tx + w * 0.025, base - h * 0.72),
                (tx + w * 0.05 + 2, base - h * 0.62)], fill=(24, 24, 32))
     # missile trails crossing + interception burst
-    d.line([(x + w * 0.08, y + h * 0.55), (x + w * 0.48, y + h * 0.14)],
-           fill=(255, 170, 60), width=3)
-    d.line([(x + w * 0.92, y + h * 0.50), (x + w * 0.52, y + h * 0.16)],
-           fill=(255, 210, 90), width=3)
+    missile_trail(d, x, y, w, h, 0.08, 0.55, 0.48, 0.14, (255, 170, 60))
+    missile_trail(d, x, y, w, h, 0.92, 0.50, 0.52, 0.16, (255, 210, 90))
     bx, by = x + w * 0.50, y + h * 0.15
     for ang in range(0, 360, 45):
-        import math as _m
-        ex = bx + 14 * _m.cos(_m.radians(ang))
-        ey = by + 14 * _m.sin(_m.radians(ang))
+        ex = bx + 14 * math.cos(math.radians(ang))
+        ey = by + 14 * math.sin(math.radians(ang))
         d.line([(bx, by), (ex, ey)], fill=(255, 240, 160), width=2)
     d.ellipse([bx - 5, by - 5, bx + 5, by + 5], fill=(255, 240, 160))
 
