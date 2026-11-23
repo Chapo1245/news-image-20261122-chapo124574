@@ -562,28 +562,37 @@ def scene_chapo(d, x, y, w, h):
     f = font("sans_b", max(9, int(h * 0.11)))
     t = "WANTED"
     d.text((px + (pw - tw(f, t)) / 2, py + ph * 0.04), t, font=f, fill=(20, 20, 20))
-    # silhouette head + wide-brim hat + shoulders (ph-based, not w-based)
+    # silhouette: compact head + wide-brim hat + shoulders, all BELOW the
+    # WANTED band (v2 bug: the hat crown/brim rose into the headline and
+    # ate the middle letters). WANTED's baseline sits near ph*0.24, so the
+    # crown starts at ph*0.28 and the whole figure ends by ph*0.92.
     cx = px + pw / 2
-    hr = ph * 0.16
-    d.ellipse([cx - hr, py + ph * 0.24, cx + hr, py + ph * 0.24 + 2 * hr],
-              fill=(40, 40, 40))
-    d.ellipse([cx - ph * 0.30, py + ph * 0.20, cx + ph * 0.30, py + ph * 0.24],
-              fill=(40, 40, 40))
-    d.pieslice([cx - ph * 0.18, py + ph * 0.10, cx + ph * 0.18, py + ph * 0.34],
+    hr = ph * 0.13
+    # crown dome (top ph*0.28, base ph*0.40)
+    d.pieslice([cx - ph * 0.17, py + ph * 0.28, cx + ph * 0.17, py + ph * 0.52],
                180, 360, fill=(40, 40, 40))
-    d.pieslice([cx - ph * 0.36, py + ph * 0.55, cx + ph * 0.36, py + ph * 0.88],
+    # brim (ph*0.38-0.43)
+    d.ellipse([cx - ph * 0.29, py + ph * 0.38, cx + ph * 0.29, py + ph * 0.43],
+              fill=(40, 40, 40))
+    # head (ph*0.40-0.66)
+    d.ellipse([cx - hr, py + ph * 0.40, cx + hr, py + ph * 0.40 + 2 * hr],
+              fill=(40, 40, 40))
+    # shoulders dome (top ph*0.62, base ph*0.77)
+    d.pieslice([cx - ph * 0.34, py + ph * 0.62, cx + ph * 0.34, py + ph * 0.92],
                180, 360, fill=(40, 40, 40))
-    # CAPTURED stamp (low, over the shoulders — never over the face)
-    f2 = font("sans_b", max(8, int(h * 0.09)))
+    # CAPTURED stamp: smaller, centred on the shoulders, fully inside the
+    # poster (v2 bug: pasted at ph*0.66 it spilled ~17px past the poster
+    # bottom, across the card divider into the headline text).
+    f2 = font("sans_b", max(7, int(h * 0.08)))
     t2 = "CAPTURED"
     sw, sh = tw(f2, t2) + 8, f2.size + 6
     stamp = Image.new("RGBA", (int(sw) + 4, int(sh) + 4), (0, 0, 0, 0))
     sd = ImageDraw.Draw(stamp)
     sd.rectangle([2, 2, sw, sh], outline=(176, 32, 28), width=2)
     sd.text((4, 3), t2, font=f2, fill=(176, 32, 28))
-    stamp = stamp.rotate(-14, expand=True, resample=Image.BICUBIC)
+    stamp = stamp.rotate(-12, expand=True, resample=Image.BICUBIC)
     d._image.paste(stamp, (int(px + pw * 0.5 - stamp.width / 2),
-                            int(py + ph * 0.66)), stamp)
+                            int(py + ph * 0.68 - stamp.height / 2)), stamp)
 
 
 def scene_peru(d, x, y, w, h):
